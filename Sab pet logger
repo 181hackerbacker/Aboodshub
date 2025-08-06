@@ -1,102 +1,251 @@
-local player = game.Players.LocalPlayer
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "AboodHub"
-screenGui.ResetOnSpawn = false
+pcall(function()
+    local player = game.Players.LocalPlayer
+    local TeleportService = game:GetService("TeleportService")
 
--- Toggle Button
-local toggleBtn = Instance.new("TextButton", screenGui)
-toggleBtn.Size = UDim2.new(0, 40, 0, 40)
-toggleBtn.Position = UDim2.new(0, 10, 0, 10)
-toggleBtn.Text = "≡"
-toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-toggleBtn.TextColor3 = Color3.new(1, 1, 1)
-toggleBtn.BorderSizePixel = 0
-Instance.new("UICorner", toggleBtn)
+    -- GUI setup
+    local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    screenGui.Name = "AboodHub"
+    screenGui.ResetOnSpawn = false
 
--- Main Frame
-local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0, 500, 0, 350)
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Visible = true
-Instance.new("UICorner", mainFrame)
+    local toggleBtn = Instance.new("TextButton", screenGui)
+    toggleBtn.Size = UDim2.new(0,40,0,40)
+    toggleBtn.Position = UDim2.new(0,10,0,10)
+    toggleBtn.Text = "≡"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    toggleBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", toggleBtn)
 
--- Sidebar
-local sidebar = Instance.new("Frame", mainFrame)
-sidebar.Size = UDim2.new(0, 130, 1, 0)
-sidebar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-sidebar.BorderSizePixel = 0
-Instance.new("UICorner", sidebar)
+    local mainFrame = Instance.new("Frame", screenGui)
+    mainFrame.Size = UDim2.new(0,500,0,350)
+    mainFrame.Position = UDim2.new(0.5,-250,0.5,-175)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Instance.new("UICorner", mainFrame)
 
--- Tab Button Creator
-local function createTabButton(name, yPos)
-	local btn = Instance.new("TextButton", sidebar)
-	btn.Size = UDim2.new(1, -10, 0, 40)
-	btn.Position = UDim2.new(0, 5, 0, yPos)
-	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-	btn.Text = name
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.TextScaled = true
-	Instance.new("UICorner", btn)
-	return btn
-end
+    local sidebar = Instance.new("Frame", mainFrame)
+    sidebar.Size = UDim2.new(0,130,1,0)
+    sidebar.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    Instance.new("UICorner", sidebar)
 
--- Page Creator
-local function createPage(name)
-	local page = Instance.new("Frame", mainFrame)
-	page.Name = name
-	page.Position = UDim2.new(0, 130, 0, 0)
-	page.Size = UDim2.new(1, -130, 1, 0)
-	page.Visible = false
-	page.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	Instance.new("UICorner", page)
-	return page
-end
+    local function createTabButton(name,y)
+        local btn = Instance.new("TextButton", sidebar)
+        btn.Size = UDim2.new(1,-10,0,40)
+        btn.Position = UDim2.new(0,5,0,y)
+        btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+        btn.Text = name
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.TextScaled = true
+        Instance.new("UICorner", btn)
+        return btn
+    end
+    local function createPage(name)
+        local p = Instance.new("Frame", mainFrame)
+        p.Name = name
+        p.Position = UDim2.new(0,130,0,0)
+        p.Size = UDim2.new(1,-130,1,0)
+        p.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        Instance.new("UICorner", p)
+        return p
+    end
 
--- Pages
-local pages = {
-	Main = createPage("MainPage"),
-	Player = createPage("PlayerPage"),
-	Stealer = createPage("StealerPage"),
-	Live = createPage("LivePage")
-}
+    local pages = {
+        Main = createPage("MainPage"),
+        Player = createPage("PlayerPage"),
+        Stealer = createPage("StealerPage"),
+        Live = createPage("LivePage")
+    }
 
--- Tab Buttons
-local mainTab = createTabButton("Main", 10)
-local playerTab = createTabButton("Player", 60)
-local stealerTab = createTabButton("Stealer", 110)
-local liveTab = createTabButton("Live", 160)
+    local tabs = {
+        mainTab = createTabButton("Main",10),
+        playerTab = createTabButton("Player",60),
+        stealerTab = createTabButton("Stealer",110),
+        liveTab = createTabButton("Live",160)
+    }
 
--- Tab Functionality
-local function showPage(name)
-	for _, page in pairs(pages) do
-		page.Visible = false
-	end
-	if pages[name] then
-		pages[name].Visible = true
-	end
-end
+    local function showPage(name)
+        for _,p in pairs(pages) do p.Visible = false end
+        if pages[name] then pages[name].Visible = true end
+    end
+    tabs.mainTab.MouseButton1Click:Connect(function() showPage("Main") end)
+    tabs.playerTab.MouseButton1Click:Connect(function() showPage("Player") end)
+    tabs.stealerTab.MouseButton1Click:Connect(function() showPage("Stealer") end)
+    tabs.liveTab.MouseButton1Click:Connect(function() showPage("Live") end)
+    showPage("Main")
+    toggleBtn.MouseButton1Click:Connect(function() mainFrame.Visible = not mainFrame.Visible end)
 
-mainTab.MouseButton1Click:Connect(function() showPage("Main") end)
-playerTab.MouseButton1Click:Connect(function() showPage("Player") end)
-stealerTab.MouseButton1Click:Connect(function() showPage("Stealer") end)
-liveTab.MouseButton1Click:Connect(function() showPage("Live") end)
-showPage("Main") -- default page
+    -- WalkSpeed & JumpPower Sliders
+    do
+        local function makeSlider(parent,name,y,maxVal,default,prop)
+            local lbl = Instance.new("TextLabel", parent)
+            lbl.Size = UDim2.new(1,-20,0,25); lbl.Position = UDim2.new(0,10,0,y)
+            lbl.Text = name..": "..default; lbl.BackgroundTransparency = 1
+            lbl.TextColor3 = Color3.new(1,1,1); lbl.TextScaled = true
 
--- Toggle Logic
-toggleBtn.MouseButton1Click:Connect(function()
-	mainFrame.Visible = not mainFrame.Visible
+            local bar = Instance.new("Frame", parent)
+            bar.Size = UDim2.new(1,-20,0,25); bar.Position = UDim2.new(0,10,0,y+30)
+            bar.BackgroundColor3 = Color3.fromRGB(60,60,60); Instance.new("UICorner", bar)
+
+            local fill = Instance.new("Frame", bar)
+            fill.Size = UDim2.new(default/maxVal,0,1,0)
+            fill.BackgroundColor3 = Color3.fromRGB(0,170,255); Instance.new("UICorner", fill)
+
+            local btn = Instance.new("TextButton", bar)
+            btn.Size = UDim2.new(1,0,1,0); btn.BackgroundTransparency = 1; btn.Text = ""
+            local dragging = false
+
+            btn.MouseButton1Down:Connect(function() dragging = true end)
+            game:GetService("UserInputService").InputChanged:Connect(function(inp)
+                if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+                    local relX = math.clamp(inp.Position.X - bar.AbsolutePosition.X,0, bar.AbsoluteSize.X)
+                    local pct = relX/bar.AbsoluteSize.X
+                    local val = math.floor(pct*maxVal)
+                    fill.Size = UDim2.new(pct,0,1,0)
+                    lbl.Text = name..": "..val
+                    if player.Character and player.Character:FindFirstChild("Humanoid") then
+                        player.Character.Humanoid[prop] = val
+                    end
+                end
+            end)
+            game:GetService("UserInputService").InputEnded:Connect(function(inp)
+                if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+            end)
+            -- set default on spawn
+            player.CharacterAdded:Connect(function(char)
+                char:WaitForChild("Humanoid")[prop] = default
+            end)
+        end
+
+        makeSlider(pages.Player, "WalkSpeed", 10, 200, 16, "WalkSpeed")
+        makeSlider(pages.Player, "JumpPower", 80, 300, 50, "JumpPower")
+    end
+
+    -- Teleport dropdown (Main)
+    do
+        local tpBtn = Instance.new("TextButton", pages.Main)
+        tpBtn.Size = UDim2.new(1,-20,0,25); tpBtn.Position = UDim2.new(0,10,0,40)
+        tpBtn.Text = "Select Player"; tpBtn.TextColor3 = Color3.new(1,1,1)
+        tpBtn.BackgroundColor3 = Color3.fromRGB(60,60,60); Instance.new("UICorner", tpBtn)
+        tpBtn.MouseButton1Click:Connect(function()
+            local menu = Instance.new("Frame", pages.Main)
+            menu.Position = UDim2.new(0,10,0,70)
+            menu.Size = UDim2.new(1,-20,0,150)
+            menu.BackgroundColor3 = Color3.fromRGB(45,45,45)
+            Instance.new("UICorner", menu)
+            for _,plr in ipairs(game.Players:GetPlayers()) do
+                if plr ~= player then
+                    local b = Instance.new("TextButton", menu)
+                    b.Size = UDim2.new(1,-10,0,30)
+                    b.Position = UDim2.new(0,5,0,(#menu:GetChildren()-1)*35)
+                    b.Text = plr.Name; b.TextColor3 = Color3.new(1,1,1)
+                    b.BackgroundColor3 = Color3.fromRGB(70,70,70)
+                    Instance.new("UICorner", b)
+                    b.MouseButton1Click:Connect(function()
+                        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                            player.Character:MoveTo(plr.Character.HumanoidRootPart.Position + Vector3.new(0,5,0))
+                        end
+                        menu:Destroy()
+                    end)
+                end
+            end
+        end)
+    end
+
+    -- ESP toggle button (Main)
+    local espOn = false
+    local espBtn = Instance.new("TextButton", pages.Main)
+    espBtn.Size = UDim2.new(1,-20,0,25); espBtn.Position = UDim2.new(0,10,0,230)
+    espBtn.Text = "Toggle ESP"; espBtn.TextColor3 = Color3.new(1,1,1)
+    espBtn.BackgroundColor3 = Color3.fromRGB(60,60,60); Instance.new("UICorner", espBtn)
+    espBtn.MouseButton1Click:Connect(function()
+        espOn = not espOn
+        espBtn.Text = espOn and "ESP: ON" or "ESP: OFF"
+    end)
+
+    local function updateESP()
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr~=player and plr.Character and plr.Character:FindFirstChild("Head") then
+                if not plr.Character.Head:FindFirstChild("AboodESP") then
+                    local tag = Instance.new("BillboardGui", plr.Character.Head)
+                    tag.Name = "AboodESP"; tag.Size = UDim2.new(0,100,0,20)
+                    tag.StudsOffset = Vector3.new(0,3,0); tag.AlwaysOnTop = true
+                    local txt = Instance.new("TextLabel", tag)
+                    txt.Size = UDim2.new(1,0,1,0); txt.BackgroundTransparency = 1
+                    txt.Text = plr.Name; txt.TextColor3 = Color3.fromRGB(0,255,0)
+                    txt.TextScaled = true
+                end
+            end
+        end
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name=="Brainrot" and obj.Parent:IsA("Model") then
+                local head = obj.Parent:FindFirstChild("Head") or obj
+                if head and not head:FindFirstChild("AboodESP") then
+                    local tag = Instance.new("BillboardGui", head)
+                    tag.Name = "AboodESP"; tag.Size = UDim2.new(0,100,0,20)
+                    tag.StudsOffset = Vector3.new(0,3,0); tag.AlwaysOnTop = true
+                    local txt = Instance.new("TextLabel", tag)
+                    txt.Size = UDim2.new(1,0,1,0); txt.BackgroundTransparency = 1
+                    txt.Text = "🧠 Brainrot"; txt.TextColor3 = Color3.fromRGB(255,0,0)
+                    txt.TextScaled = true
+                end
+            end
+        end
+    end
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if espOn then updateESP() end
+    end)
+
+    -- Live tab scan + join
+    do
+        local liveBtn = pages.Live:FindFirstChildWhichIsA("TextButton")
+        liveBtn.Position = UDim2.new(0,10,0,10)
+        local liveOut = Instance.new("Frame", pages.Live)
+        liveOut.Size = UDim2.new(1,-20,0,180)
+        liveOut.Position = UDim2.new(0,10,0,50)
+        liveOut.BackgroundTransparency = 1
+
+        function showServer(serverId, info)
+            local lbl = Instance.new("TextLabel", liveOut)
+            lbl.Size = UDim2.new(1,0,0,30)
+            lbl.Position = UDim2.new(0,0,0,#liveOut:GetChildren()*35)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = "Server "..serverId.." - Value: "..info.value
+            lbl.TextColor3 = Color3.new(1,1,1)
+            lbl.TextScaled = true
+
+            local btn = Instance.new("TextButton", liveOut)
+            btn.Size = UDim2.new(0,120,0,30)
+            btn.Position = UDim2.new(1,-130,0,#liveOut:GetChildren()*35)
+            btn.Text = "Join"
+            btn.BackgroundColor3 = Color3.fromRGB(100,200,100)
+            btn.TextColor3 = Color3.new(1,1,1)
+            Instance.new("UICorner", btn)
+            btn.MouseButton1Click:Connect(function()
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, serverId, player)
+            end)
+        end
+
+        liveBtn.MouseButton1Click:Connect(function()
+            liveOut:ClearAllChildren()
+            liveBtn.Text = "Scanning..."
+            task.wait(2)
+            local fakeServers = {
+                {id = 111, value = 300000},
+                {id = 222, value = 600000},
+                {id = 333, value = 450000}
+            }
+            for _,info in ipairs(fakeServers) do
+                if info.value >= 500000 then
+                    showServer(info.id, info)
+                end
+            end
+            if #liveOut:GetChildren() == 0 then
+                local none = Instance.new("TextLabel", liveOut)
+                none.Size = UDim2.new(1,0,0,30)
+                none.Text = "No high-value brainrot servers found."
+                none.TextColor3 = Color3.new(1,1,1); none.BackgroundTransparency = 1
+                none.TextScaled = true
+            end
+            liveBtn.Text = "Scan Servers"
+        end)
+    end
 end)
-
--- Live Page Content
-local liveLabel = Instance.new("TextLabel", pages.Live)
-liveLabel.Size = UDim2.new(1, -20, 0, 50)
-liveLabel.Position = UDim2.new(0, 10, 0, 10)
-liveLabel.BackgroundTransparency = 0.25
-liveLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-liveLabel.TextColor3 = Color3.new(1, 1, 1)
-liveLabel.TextScaled = true
-liveLabel.Text = "📡 Live updates will appear here"
-Instance.new("UICorner", liveLabel)
-
-loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/YOURKEY.lua"))()
