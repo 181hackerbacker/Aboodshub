@@ -1,82 +1,210 @@
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local VirtualUser = game:GetService("VirtualUser")
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Clean up existing UI
-local existing = player:WaitForChild("PlayerGui"):FindFirstChild("AboodHub")
+-- Remove existing GUI
+local existing = playerGui:FindFirstChild("AboodHub")
 if existing then existing:Destroy() end
 
--- Screen GUI
-local screenGui = Instance.new("ScreenGui")
+-- GUI setup
+local screenGui = Instance.new("ScreenGui", playerGui)
 screenGui.Name = "AboodHub"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Main Frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 500, 0, 300)
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-mainFrame.BackgroundTransparency = 0.3
+mainFrame.Size = UDim2.new(0, 650, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BackgroundTransparency = 0.25
 mainFrame.BorderSizePixel = 0
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.Active = true
 mainFrame.Draggable = true
 
--- UICorner for round edges
-local frameCorner = Instance.new("UICorner", mainFrame)
-frameCorner.CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
--- Title
 local title = Instance.new("TextLabel", mainFrame)
-title.Size = UDim2.new(0, 300, 0, 40)
+title.Size = UDim2.new(1, -60, 0, 40)
 title.Position = UDim2.new(0, 20, 0, 10)
-title.Text = "ABOOD\nHUB"
+title.Text = "ABOOD HUB"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
-title.TextYAlignment = Enum.TextYAlignment.Top
+title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Top-right icon (static image)
-local icon = Instance.new("ImageLabel", mainFrame)
-icon.Size = UDim2.new(0, 60, 0, 60)
-icon.Position = UDim2.new(1, -70, 0, 10)
-icon.BackgroundTransparency = 1
-icon.Image = "rbxassetid://137401639328935" -- Your custom icon
+local closeBtn = Instance.new("TextButton", mainFrame)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 10)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 
--- Vertical tab buttons
-local tabs = {"Main", "Player", "ESP", "Settings"}
-local buttonY = 70
-for _, name in ipairs(tabs) do
-    local button = Instance.new("TextButton", mainFrame)
-    button.Size = UDim2.new(0, 200, 0, 50)
-    button.Position = UDim2.new(0, 20, 0, buttonY)
-    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    button.Text = name
-    button.TextScaled = true
-    button.Font = Enum.Font.Gotham
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+local reopenBtn = Instance.new("TextButton", screenGui)
+reopenBtn.Name = "ReopenButton"
+reopenBtn.Size = UDim2.new(0, 30, 0, 30)
+reopenBtn.Position = UDim2.new(0, 10, 1, -40)
+reopenBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+reopenBtn.Text = "+"
+reopenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+reopenBtn.TextScaled = true
+reopenBtn.Visible = false
+Instance.new("UICorner", reopenBtn).CornerRadius = UDim.new(0, 6)
 
-    local corner = Instance.new("UICorner", button)
-    corner.CornerRadius = UDim.new(0, 10)
+local tabs = {"Main", "Player", "ESP", "Stealer"}
+local tabFrames = {}
 
-    buttonY = buttonY + 60
+local function switchTab(tabName)
+    for name, frame in pairs(tabFrames) do
+        frame.Visible = (name == tabName)
+    end
 end
 
--- Toggle Button (Open/Close) with your icon
-local toggleButton = Instance.new("ImageButton")
-toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 60, 0, 60)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundTransparency = 1
-toggleButton.Image = "rbxassetid://137401639328935"
-toggleButton.Parent = screenGui
+for i, tabName in ipairs(tabs) do
+    local tabButton = Instance.new("TextButton", mainFrame)
+    tabButton.Size = UDim2.new(0, 120, 0, 40)
+    tabButton.Position = UDim2.new(0, 20, 0, 60 + ((i - 1) * 45))
+    tabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    tabButton.Text = tabName
+    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tabButton.Font = Enum.Font.Gotham
+    tabButton.TextSize = 14
+    Instance.new("UICorner", tabButton).CornerRadius = UDim.new(0, 6)
 
--- Open/Close toggle logic
-local isOpen = true
-toggleButton.MouseButton1Click:Connect(function()
-    isOpen = not isOpen
-    mainFrame.Visible = isOpen
+    local contentFrame = Instance.new("Frame", mainFrame)
+    contentFrame.Size = UDim2.new(1, -160, 1, -80)
+    contentFrame.Position = UDim2.new(0, 140, 0, 60)
+    contentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    contentFrame.Visible = false
+    Instance.new("UICorner", contentFrame).CornerRadius = UDim.new(0, 8)
+    tabFrames[tabName] = contentFrame
+
+    tabButton.MouseButton1Click:Connect(function()
+        switchTab(tabName)
+    end)
+end
+
+switchTab("Main")
+
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    reopenBtn.Visible = true
 end)
+
+reopenBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    reopenBtn.Visible = false
+end)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        local vis = not mainFrame.Visible
+        mainFrame.Visible = vis
+        reopenBtn.Visible = not vis
+    end
+end)
+
+-- === FEATURE ADDERS ===
+local function addButton(frame, text, y, callback)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(0, 200, 0, 30)
+    btn.Position = UDim2.new(0, 10, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Text = text
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    if callback then btn.MouseButton1Click:Connect(callback) end
+end
+
+-- === MAIN TAB ===
+do
+    local f = tabFrames["Main"]
+    addButton(f, "Server Hop", 10, function() print("Server hop triggered") end)
+    addButton(f, "Rejoin", 50, function() TeleportService:Teleport(game.PlaceId) end)
+    addButton(f, "FPS Booster", 90, function() print("FPS Boost activated") end)
+    addButton(f, "Join Friend", 130, function() print("Join Friend triggered") end)
+end
+
+-- === PLAYER TAB ===
+do
+    local f = tabFrames["Player"]
+    addButton(f, "Speed 72 Bypass", 10, function() player.Character.Humanoid.WalkSpeed = 72 end)
+    addButton(f, "Fly Mode", 50, function() print("Fly Mode on") end)
+    addButton(f, "Noclip", 90, function() print("Noclip on") end)
+    addButton(f, "God Mode", 130, function() print("God Mode triggered") end)
+    addButton(f, "Teleport to Position", 170, function() print("Teleport logic") end)
+
+    local wsLabel = Instance.new("TextLabel", f)
+    wsLabel.Position = UDim2.new(0, 220, 0, 10)
+    wsLabel.Size = UDim2.new(0, 150, 0, 25)
+    wsLabel.BackgroundTransparency = 1
+    wsLabel.Text = "WalkSpeed (0â200)"
+    wsLabel.TextColor3 = Color3.new(1, 1, 1)
+    wsLabel.Font = Enum.Font.Gotham
+    wsLabel.TextSize = 14
+
+    local wsBox = Instance.new("TextBox", f)
+    wsBox.Position = UDim2.new(0, 220, 0, 40)
+    wsBox.Size = UDim2.new(0, 100, 0, 25)
+    wsBox.PlaceholderText = "Default: 16"
+    wsBox.Text = ""
+    wsBox.TextScaled = true
+    wsBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    wsBox.FocusLost:Connect(function()
+        local val = tonumber(wsBox.Text)
+        if val and val >= 0 and val <= 200 then
+            player.Character.Humanoid.WalkSpeed = val
+        end
+    end)
+
+    local jpLabel = wsLabel:Clone()
+    jpLabel.Position = UDim2.new(0, 220, 0, 75)
+    jpLabel.Text = "JumpPower (0â200)"
+    jpLabel.Parent = f
+
+    local jpBox = wsBox:Clone()
+    jpBox.Position = UDim2.new(0, 220, 0, 105)
+    jpBox.PlaceholderText = "Default: 50"
+    jpBox.Parent = f
+    jpBox.FocusLost:Connect(function()
+        local val = tonumber(jpBox.Text)
+        if val and val >= 0 and val <= 200 then
+            player.Character.Humanoid.JumpPower = val
+        end
+    end)
+end
+
+-- === ESP TAB ===
+do
+    local f = tabFrames["ESP"]
+    addButton(f, "Brainrot ESP", 10, function() print("Brainrot ESP triggered") end)
+    addButton(f, "Player ESP", 50, function() print("Player ESP triggered") end)
+    addButton(f, "Team ESP", 90, function() print("Team ESP toggled") end)
+end
+
+-- === STEALER TAB ===
+do
+    local f = tabFrames["Stealer"]
+    addButton(f, "Auto Steal", 10, function() print("Auto Steal triggered") end)
+    addButton(f, "Auto Farm", 50, function() print("Auto Farm triggered") end)
+    addButton(f, "Anti-AFK", 90, function()
+        player.Idled:Connect(function()
+            VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            wait(1)
+            VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
+    end)
+    addButton(f, "Server Scanner", 130, function() print("Server Scanner triggered") end)
+    addButton(f, "Advanced", 170, function() print("Advanced Stealer Options") end)
+end
