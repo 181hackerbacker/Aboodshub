@@ -1,226 +1,82 @@
-local player = game.Players.LocalPlayer
-local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
 
--- GUI Setup
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+-- Clean up existing UI
+local existing = player:WaitForChild("PlayerGui"):FindFirstChild("AboodHub")
+if existing then existing:Destroy() end
+
+-- Screen GUI
+local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AboodHub"
 screenGui.ResetOnSpawn = false
-
--- Toggle Button
-local toggleBtn = Instance.new("TextButton", screenGui)
-toggleBtn.Size = UDim2.new(0,40,0,40); toggleBtn.Position = UDim2.new(0,10,0,10)
-toggleBtn.Text = "≡"; toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-toggleBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", toggleBtn)
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
 -- Main Frame
-local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0,500,0,350); mainFrame.Position = UDim2.new(0.5,-250,0.5,-175)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", mainFrame)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BackgroundTransparency = 0.3
+mainFrame.BorderSizePixel = 0
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = screenGui
+mainFrame.Active = true
+mainFrame.Draggable = true
 
--- Sidebar
-local sidebar = Instance.new("Frame", mainFrame)
-sidebar.Size = UDim2.new(0,130,1,0); sidebar.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Instance.new("UICorner", sidebar)
+-- UICorner for round edges
+local frameCorner = Instance.new("UICorner", mainFrame)
+frameCorner.CornerRadius = UDim.new(0, 12)
 
--- Tab & Page Creator
-local function createTab(name, y)
-    local btn = Instance.new("TextButton", sidebar)
-    btn.Size = UDim2.new(1,-10,0,40); btn.Position = UDim2.new(0,5,0,y)
-    btn.Text = name; btn.TextColor3 = Color3.new(1,1,1)
-    btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-    btn.TextScaled = true
-    Instance.new("UICorner", btn)
-    return btn
+-- Title
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(0, 300, 0, 40)
+title.Position = UDim2.new(0, 20, 0, 10)
+title.Text = "ABOOD\nHUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.BackgroundTransparency = 1
+title.TextYAlignment = Enum.TextYAlignment.Top
+
+-- Top-right icon (static image)
+local icon = Instance.new("ImageLabel", mainFrame)
+icon.Size = UDim2.new(0, 60, 0, 60)
+icon.Position = UDim2.new(1, -70, 0, 10)
+icon.BackgroundTransparency = 1
+icon.Image = "rbxassetid://137401639328935" -- Your custom icon
+
+-- Vertical tab buttons
+local tabs = {"Main", "Player", "ESP", "Settings"}
+local buttonY = 70
+for _, name in ipairs(tabs) do
+    local button = Instance.new("TextButton", mainFrame)
+    button.Size = UDim2.new(0, 200, 0, 50)
+    button.Position = UDim2.new(0, 20, 0, buttonY)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.Text = name
+    button.TextScaled = true
+    button.Font = Enum.Font.Gotham
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+    local corner = Instance.new("UICorner", button)
+    corner.CornerRadius = UDim.new(0, 10)
+
+    buttonY = buttonY + 60
 end
 
-local function createPage()
-    local p = Instance.new("Frame", mainFrame)
-    p.Size = UDim2.new(1,-130,1,0); p.Position = UDim2.new(0,130,0,0)
-    p.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    Instance.new("UICorner", p)
-    return p
-end
+-- Toggle Button (Open/Close) with your icon
+local toggleButton = Instance.new("ImageButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 60, 0, 60)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundTransparency = 1
+toggleButton.Image = "rbxassetid://137401639328935"
+toggleButton.Parent = screenGui
 
--- Pages
-local pages = {
-    Main = createPage(),
-    Player = createPage(),
-    Stealer = createPage(),
-    Live = createPage(),
-    Finder = createPage()
-}
-
--- Tabs
-local tabs = {
-    main = createTab("Main", 10),
-    player = createTab("Player", 60),
-    stealer = createTab("Stealer", 110),
-    live = createTab("Live", 160),
-    finder = createTab("Finder", 210)
-}
-
--- Tab switching logic
-local function showPage(name)
-    for _, pg in pairs(pages) do
-        pg.Visible = false
-    end
-    pages[name].Visible = true
-end
-
-tabs.main.MouseButton1Click:Connect(function() showPage("Main") end)
-tabs.player.MouseButton1Click:Connect(function() showPage("Player") end)
-tabs.stealer.MouseButton1Click:Connect(function() showPage("Stealer") end)
-tabs.live.MouseButton1Click:Connect(function() showPage("Live") end)
-tabs.finder.MouseButton1Click:Connect(function() showPage("Finder") end)
-showPage("Main")
-
-toggleBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
+-- Open/Close toggle logic
+local isOpen = true
+toggleButton.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    mainFrame.Visible = isOpen
 end)
-
--- Main Tab: teleport and ESP
-do
-    local tpBtn = Instance.new("TextButton", pages.Main)
-    tpBtn.Size = UDim2.new(1,-20,0,25); tpBtn.Position = UDim2.new(0,10,0,40)
-    tpBtn.Text = "Select Player"; tpBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    tpBtn.TextColor3 = Color3.new(1,1,1); tpBtn.TextScaled = true
-    Instance.new("UICorner", tpBtn)
-
-    tpBtn.MouseButton1Click:Connect(function()
-        local menu = Instance.new("Frame", pages.Main)
-        menu.Position = UDim2.new(0,10,0,70); menu.Size = UDim2.new(1,-20,0,150)
-        menu.BackgroundColor3 = Color3.fromRGB(45,45,45)
-        Instance.new("UICorner", menu)
-
-        for _, plr in ipairs(game.Players:GetPlayers()) do
-            if plr ~= player then
-                local btn = Instance.new("TextButton", menu)
-                btn.Size = UDim2.new(1,-10,0,30)
-                btn.Position = UDim2.new(0,5,0,(#menu:GetChildren()-1)*35)
-                btn.Text = plr.Name; btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-                btn.TextColor3 = Color3.new(1,1,1); btn.TextScaled = true
-                Instance.new("UICorner", btn)
-                btn.MouseButton1Click:Connect(function()
-                    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                        player.Character:MoveTo(
-                            plr.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
-                        )
-                    end
-                    menu:Destroy()
-                end)
-            end
-        end
-    end)
-
-    local espOn = false
-    local espBtn = Instance.new("TextButton", pages.Main)
-    espBtn.Size = UDim2.new(1,-20,0,25); espBtn.Position = UDim2.new(0,10,0,75)
-    espBtn.Text = "Toggle ESP"; espBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    espBtn.TextColor3 = Color3.new(1,1,1); espBtn.TextScaled = true
-    Instance.new("UICorner", espBtn)
-
-    espBtn.MouseButton1Click:Connect(function()
-        espOn = not espOn
-        espBtn.Text = espOn and "ESP: ON" or "ESP: OFF"
-    end)
-
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if not espOn then return end
-        for _, plr in ipairs(game.Players:GetPlayers()) do
-            if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
-                if not plr.Character.Head:FindFirstChild("AboodESP") then
-                    local tag = Instance.new("BillboardGui", plr.Character.Head)
-                    tag.Name = "AboodESP"; tag.Size = UDim2.new(0,100,0,20)
-                    tag.StudsOffset = Vector3.new(0,3,0); tag.AlwaysOnTop = true
-                    local txt = Instance.new("TextLabel", tag)
-                    txt.Size = UDim2.new(1,0,1,0); txt.BackgroundTransparency = 1
-                    txt.Text = plr.Name; txt.TextColor3 = Color3.fromRGB(0,255,0)
-                    txt.TextScaled = true
-                end
-            end
-        end
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj.Name == "Brainrot" and obj.Parent:IsA("Model") then
-                local head = obj.Parent:FindFirstChild("Head") or obj
-                if head and not head:FindFirstChild("AboodESP") then
-                    local tag = Instance.new("BillboardGui", head)
-                    tag.Name = "AboodESP"; tag.Size = UDim2.new(0,100,0,20)
-                    tag.StudsOffset = Vector3.new(0,3,0); tag.AlwaysOnTop = true
-                    local txt = Instance.new("TextLabel", tag)
-                    txt.Size = UDim2.new(1,0,1,0); txt.BackgroundTransparency = 1
-                    txt.Text = "🧠 Brainrot"; txt.TextColor3 = Color3.fromRGB(255,0,0)
-                    txt.TextScaled = true
-                end
-            end
-        end
-    end)
-end
-
--- Player tab: currently empty
-do
-    local lbl = Instance.new("TextLabel", pages.Player)
-    lbl.Size = UDim2.new(1,-20,0,30); lbl.Position = UDim2.new(0,10,0,10)
-    lbl.Text = "No player features yet."; lbl.BackgroundTransparency = 1
-    lbl.TextColor3 = Color3.new(1,1,1); lbl.TextScaled = true
-end
-
--- Finder tab: Server scan + Join
-do
-    local scanBtn = Instance.new("TextButton", pages.Finder)
-    scanBtn.Size = UDim2.new(1,-20,0,30); scanBtn.Position = UDim2.new(0,10,0,10)
-    scanBtn.Text = "🔍 Scan Brainrot Servers"
-    scanBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    scanBtn.TextColor3 = Color3.new(1,1,1); scanBtn.TextScaled = true
-    Instance.new("UICorner", scanBtn)
-
-    local container = Instance.new("Frame", pages.Finder)
-    container.Size = UDim2.new(1,-20,0,300); container.Position = UDim2.new(0,10,0,50)
-    container.BackgroundTransparency = 1
-
-    local function addServerEntry(id, value, y)
-        local lbl = Instance.new("TextLabel", container)
-        lbl.Size = UDim2.new(0.6,0,0,30); lbl.Position = UDim2.new(0,0,0,y)
-        lbl.Text = "Server "..id.." — Brainrot: "..value
-        lbl.TextColor3 = Color3.new(1,1,1); lbl.BackgroundTransparency = 1
-        lbl.TextScaled = true
-
-        local joinBtn = Instance.new("TextButton", container)
-        joinBtn.Size = UDim2.new(0.3,0,0,30); joinBtn.Position = UDim2.new(0.7,0,0,y)
-        joinBtn.Text = "Join"
-        joinBtn.BackgroundColor3 = Color3.fromRGB(90,200,90)
-        joinBtn.TextColor3 = Color3.new(1,1,1)
-        Instance.new("UICorner", joinBtn)
-
-        joinBtn.MouseButton1Click:Connect(function()
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, id, player)
-        end)
-    end
-
-    scanBtn.MouseButton1Click:Connect(function()
-        container:ClearAllChildren()
-        scanBtn.Text = "Scanning..."
-        task.wait(2)
-        local fakeServers = {
-            {id = 201, value = 550000},
-            {id = 202, value = 480000},
-            {id = 203, value = 700000},
-        }
-        local y = 0
-        for _, s in ipairs(fakeServers) do
-            if s.value >= 500000 then
-                addServerEntry(s.id, s.value, y)
-                y = y + 35
-            end
-        end
-        if y == 0 then
-            local none = Instance.new("TextLabel", container)
-            none.Size = UDim2.new(1,0,0,30); none.Position = UDim2.new(0,0,0,0)
-            none.Text = "No high-value Brainrot servers found"
-            none.TextColor3 = Color3.new(1,1,1); none.BackgroundTransparency = 1
-            none.TextScaled = true
-        end
-        scanBtn.Text = "🔍 Scan Brainrot Servers"
-    end)
-end
